@@ -26,21 +26,9 @@ resource "confluent_kafka_cluster" "cjackson_cluster" {
   }
 }
 
-# Schema Registry (in same environment; ESSENTIALS includes Governance + Schema Registry)
-resource "confluent_schema_registry_cluster" "cjackson_sr" {
-  display_name = "${var.resource_prefix}schema-registry"
-
-  package = "ESSENTIALS"
-
+# Schema Registry (look up existing cluster in environment; ESSENTIALS/Stream Governance)
+data "confluent_schema_registry_cluster" "cjackson_sr" {
   environment {
     id = confluent_environment.cjackson_env.id
-  }
-
-  region {
-    id = confluent_kafka_cluster.cjackson_cluster.region
-  }
-
-  lifecycle {
-    prevent_destroy = false
   }
 }

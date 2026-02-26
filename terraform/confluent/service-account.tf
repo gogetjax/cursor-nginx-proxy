@@ -22,11 +22,11 @@ resource "confluent_role_binding" "cjackson_kafka_cluster_developer_write" {
 resource "confluent_role_binding" "cjackson_sr_developer" {
   principal   = "User:${confluent_service_account.cjackson_sa.id}"
   role_name   = "DeveloperRead"
-  crn_pattern = "${confluent_schema_registry_cluster.cjackson_sr.resource_name}/subject=*"
+  crn_pattern = "${data.confluent_schema_registry_cluster.cjackson_sr.resource_name}/subject=*"
 }
 
 resource "confluent_role_binding" "cjackson_sr_developer_write" {
   principal   = "User:${confluent_service_account.cjackson_sa.id}"
   role_name   = "DeveloperWrite"
-  crn_pattern = "${confluent_schema_registry_cluster.cjackson_sr.resource_name}/subject=*"
+  crn_pattern = "${data.confluent_schema_registry_cluster.cjackson_sr.resource_name}/subject=*"
 }

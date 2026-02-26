@@ -12,7 +12,7 @@ output "kafka_bootstrap_host" {
 
 output "schema_registry_url" {
   description = "Schema Registry REST URL (HTTPS)"
-  value       = confluent_schema_registry_cluster.cjackson_sr.rest_endpoint
+  value       = data.confluent_schema_registry_cluster.cjackson_sr.rest_endpoint
 }
 
 output "topic_name" {
