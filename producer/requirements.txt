@@ -1,0 +1,5 @@
+# Kafka producer with Schema Registry support; TLS to NGINX proxy (Confluent Cloud)
+confluent-kafka[avro,json-schema]>=2.3.0
+python-dotenv>=1.0.0
+jsonschema>=4.0.0
+requests>=2.28.0
