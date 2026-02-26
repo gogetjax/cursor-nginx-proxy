@@ -21,6 +21,8 @@ module "producer" {
 
   resource_prefix = var.resource_prefix
   location        = var.azure_location
+  environment     = var.environment
+  owner_email     = var.owner_email
 }
 
 # NGINX VNet and AKS (Kubernetes provider uses this AKS; see providers.tf)
@@ -31,6 +33,8 @@ module "nginx" {
   location           = var.azure_location
   kubernetes_version = null
   node_count         = 1
+  environment        = var.environment
+  owner_email        = var.owner_email
 }
 
 locals {
