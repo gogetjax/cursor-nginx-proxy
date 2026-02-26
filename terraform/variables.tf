@@ -16,22 +16,34 @@ variable "azure_location" {
   default     = "eastus"
 }
 
+# Default tags applied to all Azure resources (set owner_email via TF_VAR_owner_email or GitHub Environment OWNER_EMAIL)
+variable "owner_email" {
+  description = "Owner email for Azure resource tags (set in GitHub Environment variable OWNER_EMAIL or TF_VAR_owner_email)"
+  type        = string
+}
+
+variable "environment" {
+  description = "Environment name for Azure resource tags (e.g. dev, staging, prod)"
+  type        = string
+  default     = "dev"
+}
+
 variable "resource_prefix" {
   description = "Prefix for Terraform and Confluent resource names (e.g. cjackson-)"
   type        = string
   default     = "cjackson-"
 }
 
-# Confluent Cloud (set via env CONFLUENT_CLOUD_API_KEY, CONFLUENT_CLOUD_API_SECRET or pass here)
+# Confluent Cloud (store in GitHub Secrets CONFLUENT_CLOUD_API_KEY, CONFLUENT_CLOUD_API_SECRET or set here)
 variable "confluent_cloud_api_key" {
-  description = "Confluent Cloud API key for Terraform provider"
+  description = "Confluent Cloud API key for Terraform provider (use GitHub Secret CONFLUENT_CLOUD_API_KEY in CI)"
   type        = string
   sensitive   = true
   default     = ""
 }
 
 variable "confluent_cloud_api_secret" {
-  description = "Confluent Cloud API secret for Terraform provider"
+  description = "Confluent Cloud API secret for Terraform provider (use GitHub Secret CONFLUENT_CLOUD_API_SECRET in CI)"
   type        = string
   sensitive   = true
   default     = ""

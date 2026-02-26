@@ -22,6 +22,17 @@ The Producer reads configuration from the environment (or a `.env` file that is 
 - **TLS**: All connections (Producer → NGINX, NGINX → Confluent) use TLS over the public internet. The Producer connects to the NGINX proxy on port 8082 with TLS; the producer library uses the same credentials as for Confluent (API key/secret) for authentication after the TLS handshake.
 - **Schema Registry**: Typically accessed over HTTPS using the same or a separate API key; the Confluent Kafka client can use Schema Registry for serialization. Ensure `SCHEMA_REGISTRY_URL` is set when using Avro/JSON Schema.
 
+## Terraform / Azure default tags
+
+Terraform applies default tags to all Azure resources. Set these so plan/apply and CI do not prompt:
+
+| Variable / GitHub | Description |
+|------------------|-------------|
+| `TF_VAR_owner_email` / **OWNER_EMAIL** (Environment variable) | Owner email tag; set once in GitHub Environment (e.g. `terraform`) or export locally. |
+| `TF_VAR_environment` / **ENVIRONMENT** (optional) | Environment name tag (e.g. `dev`, `prod`); defaults to `dev`. |
+
+For Confluent, store **CONFLUENT_CLOUD_API_KEY** and **CONFLUENT_CLOUD_API_SECRET** in GitHub Secrets (repo or environment) so Terraform can manage Confluent resources in CI.
+
 ## Example (local development)
 
 Copy the example file and fill with values from Terraform outputs or GitHub Secrets:
