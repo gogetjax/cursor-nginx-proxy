@@ -42,6 +42,10 @@ All components including the Environment, service accounts, API Keys, Topics, an
 This workload runs in a new Environment.
 A service account should be used that manages and have access to appropriate Confluent Cloud resources with proper RBAC access such as DeveloperRead,DeveloperWrite if needed for Schema Registry, Kafka Cluster and topics.
 
+Schema Registry (ESSENTIALS)
+----------------------------
+The environment uses the ESSENTIALS package for Stream Governance and Schema Registry. Stream Governance (ESSENTIALS) must be enabled for the environment in Confluent Cloud (Stream Governance → Enable in the console) so that the Schema Registry cluster exists. Terraform does not create the Schema Registry cluster; it only references the existing cluster via a data source and configures role bindings and outputs (e.g. schema_registry_url).
+
 
 Terraform
 ==========
