@@ -85,6 +85,14 @@ Credentials can be provided via variables or environment variables.
 
 4. **GitHub (optional):** To push secrets to the repo, set `GITHUB_TOKEN` or variable `github_token`, and `github_owner` / `github_repo` (default `cursor-nginx-proxy`).
 
+### Confluent Cloud – Stream Governance (Schema Registry)
+
+Schema Registry uses the **ESSENTIALS** package for Stream Governance. The Confluent Terraform provider does not create the Schema Registry cluster; it only looks up an existing one. Before running `terraform apply`, enable Stream Governance for your Confluent Cloud environment:
+
+1. In Confluent Cloud, open the environment (e.g. `cjackson-environment` after the first apply that creates it, or create the environment and enable governance before a full apply).
+2. **Enable Stream Governance** with the **ESSENTIALS** package (Stream Governance → Enable, or Set up Schema Registry). One Schema Registry cluster per environment will be created.
+3. Re-run `terraform apply` so the Terraform data source can find the Schema Registry cluster and populate outputs (e.g. `schema_registry_url`) and role bindings.
+
 **Deploy:**
 
 ```bash
