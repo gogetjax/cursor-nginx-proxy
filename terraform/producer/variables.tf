@@ -21,3 +21,13 @@ variable "subnet_prefix" {
   type        = string
   default     = "10.1.1.0/24"
 }
+
+variable "environment" {
+  description = "Environment tag for Azure resources"
+  type        = string
+}
+
+variable "owner_email" {
+  description = "Owner email tag for Azure resources"
+  type        = string
+}

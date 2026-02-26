@@ -4,13 +4,6 @@ provider "azurerm" {
   subscription_id = var.azure_subscription_id
   tenant_id       = var.azure_tenant_id
   features {}
-
-  default_tags {
-    tags = {
-      environment = var.environment
-      owner_email = var.owner_email
-    }
-  }
 }
 
 # Kubernetes provider configured from NGINX module AKS output (must apply nginx module first)

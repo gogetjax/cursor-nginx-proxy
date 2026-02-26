@@ -1,8 +1,16 @@
 # cjackson-: Producer VNet (separate from NGINX); Producer runs elsewhere and connects via public internet to NGINX
 
+locals {
+  common_tags = {
+    environment = var.environment
+    owner_email = var.owner_email
+  }
+}
+
 resource "azurerm_resource_group" "cjackson_producer" {
   name     = "${var.resource_prefix}producer-rg"
   location = var.location
+  tags     = local.common_tags
 }
 
 resource "azurerm_virtual_network" "cjackson_producer" {
@@ -10,6 +18,7 @@ resource "azurerm_virtual_network" "cjackson_producer" {
   address_space       = var.address_space
   location            = azurerm_resource_group.cjackson_producer.location
   resource_group_name = azurerm_resource_group.cjackson_producer.name
+  tags                = local.common_tags
 }
 
 resource "azurerm_subnet" "cjackson_producer" {
@@ -23,4 +32,5 @@ resource "azurerm_network_security_group" "cjackson_producer" {
   name                = "${var.resource_prefix}producer-nsg"
   location            = azurerm_resource_group.cjackson_producer.location
   resource_group_name = azurerm_resource_group.cjackson_producer.name
+  tags                = local.common_tags
 }
