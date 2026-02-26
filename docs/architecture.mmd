@@ -1,0 +1,15 @@
+flowchart LR
+  subgraph producer_vnet [Producer VNet]
+    Producer[Python Producer]
+  end
+  subgraph nginx_vnet [NGINX Proxy VNet]
+    AKS[AKS]
+    NGINX[NGINX Pod :8082]
+  end
+  subgraph confluent [Confluent Cloud VNet]
+    Kafka[Kafka :9092]
+    SR[Schema Registry]
+  end
+  Producer -->|"TLS (public internet)"| NGINX
+  NGINX -->|"TLS passthrough (public internet)"| Kafka
+  Producer -.->|"REST / env"| SR

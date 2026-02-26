@@ -1,0 +1,97 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://excalidraw.com",
+  "elements": [
+    {
+      "id": "producer-box",
+      "type": "rectangle",
+      "x": 40,
+      "y": 120,
+      "width": 140,
+      "height": 80,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent"
+    },
+    {
+      "id": "producer-label",
+      "type": "text",
+      "x": 70,
+      "y": 145,
+      "width": 80,
+      "height": 25,
+      "text": "Producer VNet\nPython Producer",
+      "fontSize": 14,
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "id": "nginx-box",
+      "type": "rectangle",
+      "x": 280,
+      "y": 120,
+      "width": 140,
+      "height": 80,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent"
+    },
+    {
+      "id": "nginx-label",
+      "type": "text",
+      "x": 300,
+      "y": 145,
+      "width": 100,
+      "height": 25,
+      "text": "NGINX VNet\nAKS / NGINX :8082",
+      "fontSize": 14,
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "id": "confluent-box",
+      "type": "rectangle",
+      "x": 520,
+      "y": 120,
+      "width": 160,
+      "height": 80,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent"
+    },
+    {
+      "id": "confluent-label",
+      "type": "text",
+      "x": 535,
+      "y": 145,
+      "width": 130,
+      "height": 25,
+      "text": "Confluent Cloud\nKafka :9092 + Schema Reg",
+      "fontSize": 14,
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "id": "arrow1",
+      "type": "arrow",
+      "x": 180,
+      "y": 160,
+      "width": 100,
+      "height": 0,
+      "points": [[0, 0], [100, 0]],
+      "strokeColor": "#1e1e1e",
+      "label": { "text": "TLS" }
+    },
+    {
+      "id": "arrow2",
+      "type": "arrow",
+      "x": 420,
+      "y": 160,
+      "width": 100,
+      "height": 0,
+      "points": [[0, 0], [100, 0]],
+      "strokeColor": "#1e1e1e",
+      "label": { "text": "TLS passthrough" }
+    }
+  ],
+  "appState": {
+    "gridSize": 20,
+    "viewBackgroundColor": "#ffffff"
+  },
+  "files": {}
+}

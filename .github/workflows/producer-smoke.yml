@@ -1,0 +1,30 @@
+# Optional: Smoke test – run Producer using GitHub Secrets (after Terraform apply)
+name: Producer smoke test
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 12 * * 1'  # Weekly Monday noon
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r producer/requirements.txt
+
+      - name: Run Producer
+        env:
+          BOOTSTRAP_SERVERS: ${{ secrets.BOOTSTRAP_SERVERS }}
+          SCHEMA_REGISTRY_URL: ${{ secrets.SCHEMA_REGISTRY_URL }}
+          KAFKA_API_KEY: ${{ secrets.KAFKA_API_KEY }}
+          KAFKA_API_SECRET: ${{ secrets.KAFKA_API_SECRET }}
+          TOPIC: ${{ secrets.TOPIC }}
+        run: python producer/producer.py
