@@ -49,15 +49,38 @@ All Terraform resources and data should be prefixed with "cjackson-".
 Terraform code should output all relevant url endpoints links such as load balancer links if available, kafka cluster, nginx urls, schema registry urls, etc. 
 All API Keys and secrets when generated should be output to GitHub Secrets and access by the Proucer and other components using GitHub Secrets, which can be visible by GitHub Admins with proper access.
 
+Azure resource tagging
+----------------------
+Every Azure resource created by Terraform must carry default tags. Use the Azure provider's default_tags block so that all resources automatically receive:
+- environment — Deployment environment (e.g. dev, staging, prod). May be set once and stored in a GitHub Environment variable (e.g. ENVIRONMENT).
+- owner_email — Email of the owner (e.g. your_email@example.com). Set once and store in a GitHub Environment variable (e.g. OWNER_EMAIL) so CI and Terraform can use it without prompting; for local runs, pass via TF_VAR_owner_email.
+
 
 GitHub
 =======
 GitHub repo is cursor-nginx-proxy
 Use common GitHub patterns such as GitHub Secrets for API Keys and Secrets, and passwords.
+
+Secrets (GitHub Secrets)
+------------------------
+Store the following in GitHub Secrets (repo or environment) so Terraform and CI can run without prompting:
+- CONFLUENT_CLOUD_API_KEY — Confluent Cloud API key used by the Terraform Confluent provider to manage environments, clusters, Schema Registry, topics, and API keys.
+- CONFLUENT_CLOUD_API_SECRET — Confluent Cloud API secret for the above.
+Add Azure credentials (e.g. AZURE_SUBSCRIPTION_ID, AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET) if CI runs Terraform plan/apply.
+
+Environment variables (GitHub Environment)
+-------------------------------------------
+Create a GitHub Environment (e.g. "terraform") and set Environment variables (not secrets) so all Azure resources get the correct tags:
+- OWNER_EMAIL — Owner email for the owner_email tag. Set this once; Terraform and CI use it for every Azure resource.
+- ENVIRONMENT (optional) — Environment name for the environment tag (e.g. dev, prod). Defaults to dev if unset.
+
+Documentation and diagrams
+---------------------------
 The repo should maintain a README.md file with deployment documentation, how to run the producer, and general documentation on the repo.
 We should also maintain and update a Mermaid architecture diagram viewable in raw Mermaid format but also imported and converted to an Excalidraw drawing and visible in the README.md on GitHub.
 Put this very spec plan into GitHub as well.
 The README should show examples of terraform commands needed to deploy this workload as well as update the workload.
+The README should document the required GitHub setup: Confluent and Azure secrets, and the GitHub Environment with OWNER_EMAIL (and optionally ENVIRONMENT) for Azure tags.
 The README should also show confluent CLI commands to monitor the workload to test, view, and query the environment.
 The README should also include example commands of how to monitor or query the NGINX proxy state and data flow.
 The README should also include example commands to query the state of the Kubernetes environment.

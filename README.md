@@ -1,6 +1,6 @@
 # cursor-nginx-proxy
 
-End-to-end Terraform and Python for a **Python Kafka Producer** that sends sample data to a Confluent Cloud Kafka topic (with Schema Registry), via an **NGINX TCP proxy** (SSL passthrough) on Azure Kubernetes Service (AKS). All infrastructure is in Azure; Confluent Cloud runs in its own VNet.
+End-to-end Terraform and Python for a **Python Kafka Producer** that sends sample data to a Confluent Cloud Kafka topic (with Schema Registry), via an **NGINX TCP proxy** (SSL passthrough) on Azure Kubernetes Service (AKS). All infrastructure is in Azure; Confluent Cloud runs in its own VNet. Every Azure resource is tagged with **environment** and **owner_email** (see [Required: GitHub setup](#required-github-setup-for-ci-and-tagging) and [spec](spec_nginx_proxy.md)).
 
 **Full specification:** [spec_nginx_proxy.md](spec_nginx_proxy.md).
 
@@ -39,19 +39,51 @@ flowchart LR
 - **Confluent CLI** (optional, for monitoring)
 - **Python 3.9+** (for the Producer)
 
+## Required: GitHub setup (for CI and tagging)
+
+All Azure resources are tagged with `environment` and `owner_email`. Configure GitHub once so Terraform and CI use them.
+
+### 1. GitHub Secrets (required for Terraform plan/apply in CI)
+
+Store the **Confluent Cloud** API key and secret so Terraform can manage Confluent resources:
+
+- **CONFLUENT_CLOUD_API_KEY** — Confluent Cloud API key (Cloud API keys in Confluent Cloud console).
+- **CONFLUENT_CLOUD_API_SECRET** — Confluent Cloud API secret.
+
+Also add Azure credentials if CI runs Terraform plan/apply:
+
+- **AZURE_SUBSCRIPTION_ID**, **AZURE_TENANT_ID**, **AZURE_CLIENT_ID**, **AZURE_CLIENT_SECRET** (or equivalent).
+
+Repo path: **Settings → Secrets and variables → Actions** (or **Environments → [environment] → Secrets**).
+
+### 2. GitHub Environment and `owner_email` (required for Azure tags)
+
+Create a GitHub **Environment** (e.g. `terraform`) and set **Environment variables** (not secrets) so every Azure resource gets the correct tags:
+
+- **OWNER_EMAIL** — Your email (e.g. `your_email@example.com`). Used as the `owner_email` tag on all Azure resources. Set this once; CI and Terraform will use it.
+- **ENVIRONMENT** (optional) — Name for the deployment (e.g. `dev`, `staging`, `prod`). Defaults to `dev` if unset.
+
+Repo path: **Settings → Environments → Add environment** (e.g. `terraform`) → **Environment variables** → add `OWNER_EMAIL` and optionally `ENVIRONMENT`.
+
+For local runs, set `TF_VAR_owner_email` and optionally `TF_VAR_environment` (e.g. `export TF_VAR_owner_email=your_email@example.com`).
+
 ## Terraform deploy and update
 
 Credentials can be provided via variables or environment variables.
 
-1. **Confluent Cloud:** Create an API key in Confluent Cloud (Cloud API keys) and set:
-   - `CONFLUENT_CLOUD_API_KEY` and `CONFLUENT_CLOUD_API_SECRET`, or  
+1. **Confluent Cloud:** Use GitHub Secrets **CONFLUENT_CLOUD_API_KEY** and **CONFLUENT_CLOUD_API_SECRET** in CI, or locally:
+   - `export CONFLUENT_CLOUD_API_KEY="..."` and `CONFLUENT_CLOUD_API_SECRET="..."`, or  
    - Terraform variables `confluent_cloud_api_key` and `confluent_cloud_api_secret`.
 
 2. **Azure:** Set subscription and tenant, e.g.:
    - `export ARM_SUBSCRIPTION_ID="..."` and `ARM_TENANT_ID="..."`, or  
    - Use `terraform.tfvars` (do not commit) or `-var` for `azure_subscription_id` and `azure_tenant_id`.
 
-3. **GitHub (optional):** To push secrets to the repo, set `GITHUB_TOKEN` or variable `github_token`, and `github_owner` / `github_repo` (default `cursor-nginx-proxy`).
+3. **Tags (required):** Set `owner_email` (and optionally `environment`):
+   - From GitHub: use Environment `terraform` with variable **OWNER_EMAIL** (and **ENVIRONMENT**).
+   - Locally: `export TF_VAR_owner_email=your_email@example.com` and optionally `TF_VAR_environment=dev`.
+
+4. **GitHub (optional):** To push secrets to the repo, set `GITHUB_TOKEN` or variable `github_token`, and `github_owner` / `github_repo` (default `cursor-nginx-proxy`).
 
 **Deploy:**
 
@@ -70,6 +102,8 @@ terraform apply tfplan
 terraform plan \
   -var="azure_subscription_id=..." \
   -var="azure_tenant_id=..." \
+  -var="owner_email=your_email@example.com" \
+  -var="environment=dev" \
   -var="confluent_cloud_api_key=..." \
   -var="confluent_cloud_api_secret=..." \
   -var="github_owner=YOUR_ORG" \
@@ -189,11 +223,13 @@ az aks get-credentials --resource-group <nginx-rg> --name <aks-name>
 
 ## Optional CI
 
-- **.github/workflows/terraform-plan.yml** — Runs `terraform plan` on PRs (set `CONFLUENT_CLOUD_API_KEY`, `CONFLUENT_CLOUD_API_SECRET`, Azure and optional GitHub secrets in the repo).
+- **.github/workflows/terraform-plan.yml** — Runs `terraform plan` on PRs. Requires: GitHub Secrets **CONFLUENT_CLOUD_API_KEY**, **CONFLUENT_CLOUD_API_SECRET**, and Azure credentials; a GitHub Environment named **terraform** with Environment variable **OWNER_EMAIL** (and optionally **ENVIRONMENT**) for Azure default tags.
 - **.github/workflows/producer-smoke.yml** — Manual or scheduled run of the Producer using GitHub Secrets (`BOOTSTRAP_SERVERS`, `SCHEMA_REGISTRY_URL`, `KAFKA_API_KEY`, `KAFKA_API_SECRET`, `TOPIC`); use after Terraform apply has populated those secrets.
 
 ## Repository layout
 
-- **terraform/** — Root and modules: Confluent, Producer VNet, NGINX VNet + AKS, Kubernetes (NGINX Pod/Service), GitHub secrets.
+- **terraform/** — Root and modules: Confluent, Producer VNet, NGINX VNet + AKS, Kubernetes (NGINX Pod/Service), GitHub secrets. Azure provider uses default_tags (`environment`, `owner_email`) on all resources.
 - **producer/** — Python Kafka producer (Schema Registry), `requirements.txt`, `.env.example`, `Dockerfile`.
 - **docs/** — Architecture diagram (Mermaid + Excalidraw), [env-variables.md](docs/env-variables.md).
+
+See [spec_nginx_proxy.md](spec_nginx_proxy.md) for Azure tagging, GitHub Secrets (Confluent API key/secret), and GitHub Environment (OWNER_EMAIL, ENVIRONMENT).
