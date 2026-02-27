@@ -18,18 +18,18 @@ resource "confluent_role_binding" "cjackson_deployer_kafka_admin" {
   crn_pattern = data.confluent_kafka_cluster.cjackson_cluster.rbac_crn
 }
 
-# Developer Read (scoped to the whole Kafka cluster)
+# Developer Read (scoped to all topics in the specific Kafka cluster)
 resource "confluent_role_binding" "cjackson_kafka_cluster_developer" {
   principal   = "User:${confluent_service_account.cjackson_sa.id}"
   role_name   = "DeveloperRead"
-  crn_pattern = data.confluent_kafka_cluster.cjackson_cluster.rbac_crn
+  crn_pattern = "${data.confluent_kafka_cluster.cjackson_cluster.rbac_crn}/kafka=${data.confluent_kafka_cluster.cjackson_cluster.id}/topic=*"
 }
 
-# Developer Write (scoped to the whole Kafka cluster)
+# Developer Write (scoped to all topics in the specific Kafka cluster)
 resource "confluent_role_binding" "cjackson_kafka_cluster_developer_write" {
   principal   = "User:${confluent_service_account.cjackson_sa.id}"
   role_name   = "DeveloperWrite"
-  crn_pattern = data.confluent_kafka_cluster.cjackson_cluster.rbac_crn
+  crn_pattern = "${data.confluent_kafka_cluster.cjackson_cluster.rbac_crn}/kafka=${data.confluent_kafka_cluster.cjackson_cluster.id}/topic=*"
 }
 
 # Wait for RBAC to propagate before minting API keys and creating topics
