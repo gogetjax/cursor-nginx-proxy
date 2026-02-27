@@ -1,4 +1,9 @@
 # cjackson-: Kafka ACLs for Basic cluster (topic create/describe and produce/consume)
+# Credentials for creating ACLs: use Cloud API key when set (required for ACL creation); otherwise cluster API key (may 403).
+locals {
+  acl_credentials_key    = var.cloud_api_key != "" ? var.cloud_api_key : confluent_api_key.cjackson_kafka_api_key.id
+  acl_credentials_secret = var.cloud_api_secret != "" ? var.cloud_api_secret : confluent_api_key.cjackson_kafka_api_key.secret
+}
 
 # Allow service account to create and describe topics (required for Terraform to create the topic)
 resource "confluent_kafka_acl" "cjackson_sa_topic_create" {
@@ -7,8 +12,8 @@ resource "confluent_kafka_acl" "cjackson_sa_topic_create" {
   }
   rest_endpoint = data.confluent_kafka_cluster.cjackson_cluster.rest_endpoint
   credentials {
-    key    = var.cloud_api_key
-    secret = var.cloud_api_secret
+    key    = local.acl_credentials_key
+    secret = local.acl_credentials_secret
   }
 
   resource_type = "TOPIC"
@@ -26,8 +31,8 @@ resource "confluent_kafka_acl" "cjackson_sa_topic_describe" {
   }
   rest_endpoint = data.confluent_kafka_cluster.cjackson_cluster.rest_endpoint
   credentials {
-    key    = var.cloud_api_key
-    secret = var.cloud_api_secret
+    key    = local.acl_credentials_key
+    secret = local.acl_credentials_secret
   }
 
   resource_type = "TOPIC"
@@ -46,8 +51,8 @@ resource "confluent_kafka_acl" "cjackson_sa_topic_write" {
   }
   rest_endpoint = data.confluent_kafka_cluster.cjackson_cluster.rest_endpoint
   credentials {
-    key    = var.cloud_api_key
-    secret = var.cloud_api_secret
+    key    = local.acl_credentials_key
+    secret = local.acl_credentials_secret
   }
 
   resource_type = "TOPIC"
@@ -65,8 +70,8 @@ resource "confluent_kafka_acl" "cjackson_sa_topic_read" {
   }
   rest_endpoint = data.confluent_kafka_cluster.cjackson_cluster.rest_endpoint
   credentials {
-    key    = var.cloud_api_key
-    secret = var.cloud_api_secret
+    key    = local.acl_credentials_key
+    secret = local.acl_credentials_secret
   }
 
   resource_type = "TOPIC"
@@ -85,8 +90,8 @@ resource "confluent_kafka_acl" "cjackson_sa_group_read" {
   }
   rest_endpoint = data.confluent_kafka_cluster.cjackson_cluster.rest_endpoint
   credentials {
-    key    = var.cloud_api_key
-    secret = var.cloud_api_secret
+    key    = local.acl_credentials_key
+    secret = local.acl_credentials_secret
   }
 
   resource_type = "GROUP"
