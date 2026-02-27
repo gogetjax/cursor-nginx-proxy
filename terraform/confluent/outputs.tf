@@ -2,12 +2,12 @@
 
 output "kafka_bootstrap_endpoint" {
   description = "Kafka bootstrap endpoint (e.g. SASL_SSL://pkc-xxx:9092); use host:port for NGINX proxy_pass"
-  value       = confluent_kafka_cluster.cjackson_cluster.bootstrap_endpoint
+  value       = data.confluent_kafka_cluster.cjackson_cluster.bootstrap_endpoint
 }
 
 output "kafka_bootstrap_host" {
   description = "Kafka bootstrap host for NGINX proxy_pass (strip SASL_SSL:// and use host:9092)"
-  value       = replace(replace(confluent_kafka_cluster.cjackson_cluster.bootstrap_endpoint, "SASL_SSL://", ""), "SASL_PLAINTEXT://", "")
+  value       = replace(replace(data.confluent_kafka_cluster.cjackson_cluster.bootstrap_endpoint, "SASL_SSL://", ""), "SASL_PLAINTEXT://", "")
 }
 
 output "schema_registry_url" {

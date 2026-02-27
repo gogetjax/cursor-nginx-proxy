@@ -93,6 +93,8 @@ Schema Registry uses the **ESSENTIALS** package for Stream Governance. The Confl
 2. **Enable Stream Governance** with the **ESSENTIALS** package (Stream Governance → Enable, or Set up Schema Registry). One Schema Registry cluster per environment will be created.
 3. Re-run `terraform apply` so the Terraform data source can find the Schema Registry cluster and populate outputs (e.g. `schema_registry_url`) and role bindings.
 
+Basic Kafka clusters use API-key–based access only; RBAC resource roles for Kafka require Standard (or higher) if you upgrade later.
+
 **Deploy:**
 
 ```bash

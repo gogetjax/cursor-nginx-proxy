@@ -26,6 +26,14 @@ resource "confluent_kafka_cluster" "cjackson_cluster" {
   }
 }
 
+# Read cluster with environment so provider sends environment ID (fixes "Environment ID not specified")
+data "confluent_kafka_cluster" "cjackson_cluster" {
+  id = confluent_kafka_cluster.cjackson_cluster.id
+  environment {
+    id = confluent_environment.cjackson_env.id
+  }
+}
+
 # Schema Registry (look up existing cluster in environment; ESSENTIALS/Stream Governance)
 data "confluent_schema_registry_cluster" "cjackson_sr" {
   environment {
