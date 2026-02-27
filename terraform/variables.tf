@@ -43,15 +43,10 @@ variable "confluent_cloud_api_key" {
 }
 
 variable "confluent_cloud_api_secret" {
-  description = "Confluent Cloud API secret for Terraform provider and Kafka ACL creation"
+  description = "Confluent Cloud API secret for Terraform provider"
   type        = string
   sensitive   = true
   default     = ""
-
-  validation {
-    condition     = var.confluent_cloud_api_key != "" && var.confluent_cloud_api_secret != ""
-    error_message = "Confluent Cloud API key and secret are required (Basic cluster uses Kafka ACLs). Set TF_VAR_confluent_cloud_api_key and TF_VAR_confluent_cloud_api_secret (e.g. export TF_VAR_confluent_cloud_api_key=\"$CONFLUENT_CLOUD_API_KEY\" and export TF_VAR_confluent_cloud_api_secret=\"$CONFLUENT_CLOUD_API_SECRET\")."
-  }
 }
 
 # GitHub (token for managing repo and secrets)
