@@ -10,9 +10,11 @@ provider "confluent" {
 module "confluent" {
   source = "./confluent"
 
-  resource_prefix = var.resource_prefix
-  cloud          = "AZURE"
-  region         = var.confluent_region
+  resource_prefix   = var.resource_prefix
+  cloud             = "AZURE"
+  region            = var.confluent_region
+  cloud_api_key     = var.confluent_cloud_api_key
+  cloud_api_secret  = var.confluent_cloud_api_secret
 }
 
 # Producer VNet (separate; Producer connects to NGINX over public internet)
