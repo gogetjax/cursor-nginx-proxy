@@ -58,6 +58,7 @@ def main():
     schema_registry_conf = {
         "url": cfg["schema_registry_url"],
         "basic.auth.user.info": f"{cfg['api_key']}:{cfg['api_secret']}",
+        "enable.ssl.certificate.verification": False,
     }
 
     sr_client = SchemaRegistryClient(schema_registry_conf)

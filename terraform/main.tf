@@ -10,11 +10,9 @@ provider "confluent" {
 module "confluent" {
   source = "./confluent"
 
-  resource_prefix         = var.resource_prefix
-  cloud                   = "AZURE"
-  region                  = var.confluent_region
-  admin_kafka_api_key     = var.admin_kafka_api_key
-  admin_kafka_api_secret  = var.admin_kafka_api_secret
+  resource_prefix = var.resource_prefix
+  cloud           = "AZURE"
+  region          = var.confluent_region
 }
 
 # Producer VNet (separate; Producer connects to NGINX over public internet)
@@ -40,8 +38,9 @@ module "nginx" {
 }
 
 locals {
-  nginx_lb_host          = try(kubernetes_service.cjackson_nginx_lb.status[0].load_balancer[0].ingress[0].ip, kubernetes_service.cjackson_nginx_lb.status[0].load_balancer[0].ingress[0].hostname, "")
-  nginx_bootstrap_servers = local.nginx_lb_host != "" ? "${local.nginx_lb_host}:8082" : ""
+  nginx_lb_host            = try(kubernetes_service.cjackson_nginx_lb.status[0].load_balancer[0].ingress[0].ip, kubernetes_service.cjackson_nginx_lb.status[0].load_balancer[0].ingress[0].hostname, "")
+  nginx_bootstrap_servers  = local.nginx_lb_host != "" ? "${local.nginx_lb_host}:8082" : ""
+  schema_registry_url_via_nginx = local.nginx_lb_host != "" ? "https://${local.nginx_lb_host}:8443" : ""
 }
 
 # GitHub Actions secrets (from Confluent and NGINX outputs); set github_token to enable
@@ -51,7 +50,7 @@ module "github" {
 
   repository          = var.github_repo
   bootstrap_servers   = local.nginx_bootstrap_servers
-  schema_registry_url = module.confluent.schema_registry_url
+  schema_registry_url = local.schema_registry_url_via_nginx != "" ? local.schema_registry_url_via_nginx : module.confluent.schema_registry_url
   kafka_api_key       = module.confluent.kafka_api_key_id
   kafka_api_secret    = module.confluent.kafka_api_key_secret
   topic_name          = module.confluent.topic_name
