@@ -15,3 +15,15 @@ variable "region" {
   description = "Confluent Cloud region (e.g. useast2)"
   type        = string
 }
+
+variable "admin_kafka_api_key" {
+  description = "Kafka API Key (Admin) used by Terraform to create topics"
+  type        = string
+  sensitive   = true
+}
+
+variable "admin_kafka_api_secret" {
+  description = "Kafka API Secret (Admin) used by Terraform to create topics"
+  type        = string
+  sensitive   = true
+}

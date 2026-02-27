@@ -10,9 +10,11 @@ provider "confluent" {
 module "confluent" {
   source = "./confluent"
 
-  resource_prefix = var.resource_prefix
-  cloud           = "AZURE"
-  region          = var.confluent_region
+  resource_prefix         = var.resource_prefix
+  cloud                   = "AZURE"
+  region                  = var.confluent_region
+  admin_kafka_api_key     = var.admin_kafka_api_key
+  admin_kafka_api_secret  = var.admin_kafka_api_secret
 }
 
 # Producer VNet (separate; Producer connects to NGINX over public internet)
