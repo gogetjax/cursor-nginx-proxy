@@ -71,7 +71,7 @@ For local runs, set `TF_VAR_owner_email` and optionally `TF_VAR_environment` (e.
 
 Credentials can be provided via variables or environment variables.
 
-1. **Confluent Cloud:** Use GitHub Secrets **CONFLUENT_CLOUD_API_KEY** and **CONFLUENT_CLOUD_API_SECRET** in CI, or locally set the same env vars or Terraform variables `confluent_cloud_api_key` and `confluent_cloud_api_secret`.
+1. **Confluent Cloud:** Use GitHub Secrets **CONFLUENT_CLOUD_API_KEY** and **CONFLUENT_CLOUD_API_SECRET** in CI, or locally set the same env vars or Terraform variables `confluent_cloud_api_key` and `confluent_cloud_api_secret`. Topic creation also requires an **Admin** Kafka API key (see [Admin Kafka API key for topic creation](#admin-kafka-api-key-for-topic-creation)).
 
 2. **Azure:** Set subscription and tenant, e.g.:
    - `export ARM_SUBSCRIPTION_ID="..."` and `ARM_TENANT_ID="..."`, or  
@@ -92,6 +92,19 @@ Schema Registry uses the **ESSENTIALS** package for Stream Governance. The Confl
 3. Re-run `terraform apply` so the Terraform data source can find the Schema Registry cluster and populate outputs (e.g. `schema_registry_url`) and role bindings.
 
 The Kafka cluster is Standard tier; Kafka access uses RBAC (DeveloperRead, DeveloperWrite) on the cluster. Schema Registry uses the same service account with RBAC on the Schema Registry cluster.
+
+### Admin Kafka API key for topic creation
+
+Terraform creates the Kafka topic using an **Admin** Kafka API key. Developer keys (created by Terraform for your apps) can only produce/consume on existing topics; they cannot create or alter topics. You must provide a Kafka API key that has Admin rights (e.g. Environment Admin or Cloud Cluster Admin).
+
+Create the key in Confluent Cloud (e.g. from your personal Admin user or an Admin service account), then provide it to Terraform via one of:
+
+- **Option A – `terraform.tfvars`** (do not commit):  
+  `admin_kafka_api_key = "..."` and `admin_kafka_api_secret = "..."`
+- **Option B – Environment variables:**  
+  `export TF_VAR_admin_kafka_api_key="..."` and `export TF_VAR_admin_kafka_api_secret="..."`
+
+The **Developer** key (used by the Producer, NGINX, and GitHub Secrets) is still created by Terraform; the Admin key is used only by Terraform to create the topic and is not stored as a Terraform-managed API key.
 
 **Deploy:**
 
@@ -114,6 +127,8 @@ terraform plan \
   -var="environment=dev" \
   -var="confluent_cloud_api_key=..." \
   -var="confluent_cloud_api_secret=..." \
+  -var="admin_kafka_api_key=..." \
+  -var="admin_kafka_api_secret=..." \
   -var="github_owner=YOUR_ORG" \
   -var="github_token=..."
 ```

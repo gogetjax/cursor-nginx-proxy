@@ -73,3 +73,16 @@ variable "confluent_region" {
   type        = string
   default     = "eastus2"
 }
+
+# Admin Kafka API key used only for Terraform topic creation (Developer key is created by Terraform for apps)
+variable "admin_kafka_api_key" {
+  description = "Kafka API Key (Admin) for Terraform to create topics; use TF_VAR_* or .tfvars"
+  type        = string
+  sensitive   = true
+}
+
+variable "admin_kafka_api_secret" {
+  description = "Kafka API Secret (Admin) for Terraform to create topics"
+  type        = string
+  sensitive   = true
+}
