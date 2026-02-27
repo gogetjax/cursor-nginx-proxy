@@ -34,19 +34,19 @@ variable "resource_prefix" {
   default     = "cjackson-"
 }
 
-# Confluent Cloud (store in GitHub Secrets CONFLUENT_CLOUD_API_KEY, CONFLUENT_CLOUD_API_SECRET or set here)
+# Confluent Cloud (set CONFLUENT_CLOUD_API_KEY/CONFLUENT_CLOUD_API_SECRET env vars or TF_VAR_* or GitHub Secrets in CI)
 variable "confluent_cloud_api_key" {
-  description = "Confluent Cloud API key for Terraform provider (use GitHub Secret CONFLUENT_CLOUD_API_KEY in CI)"
+  description = "Confluent Cloud API key for Terraform provider and Kafka ACL creation (defaults to CONFLUENT_CLOUD_API_KEY env var)"
   type        = string
   sensitive   = true
-  default     = ""
+  default     = "" # set env CONFLUENT_CLOUD_API_KEY or TF_VAR_confluent_cloud_api_key so provider and ACL resources get credentials
 }
 
 variable "confluent_cloud_api_secret" {
-  description = "Confluent Cloud API secret for Terraform provider (use GitHub Secret CONFLUENT_CLOUD_API_SECRET in CI)"
+  description = "Confluent Cloud API secret for Terraform provider and Kafka ACL creation (defaults to CONFLUENT_CLOUD_API_SECRET env var)"
   type        = string
   sensitive   = true
-  default     = ""
+  default     = "" # set env CONFLUENT_CLOUD_API_SECRET or TF_VAR_confluent_cloud_api_secret
 }
 
 # GitHub (token for managing repo and secrets)
