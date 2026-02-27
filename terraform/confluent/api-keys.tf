@@ -1,5 +1,5 @@
-# cjackson-: API keys for Kafka cluster (used by Producer; same SA can access Schema Registry)
-# managed_resource uses data source so cluster is read with environment; depends_on ensures data source is read first.
+# cjackson-: API keys for Kafka cluster and Schema Registry (Producer uses Kafka key + dedicated SR key)
+# managed_resource uses data source so cluster is read with environment.
 
 resource "confluent_api_key" "cjackson_kafka_api_key" {
   display_name = "${var.resource_prefix}kafka-api-key"
@@ -22,9 +22,32 @@ resource "confluent_api_key" "cjackson_kafka_api_key" {
   }
 
   depends_on = [
-    data.confluent_kafka_cluster.cjackson_cluster,
-    confluent_role_binding.cjackson_kafka_cluster_developer,
-    confluent_role_binding.cjackson_kafka_cluster_developer_write
+    time_sleep.wait_for_rbac
+  ]
+}
+
+# Schema Registry API key (dedicated; Kafka key cannot be used for Schema Registry REST API)
+resource "confluent_api_key" "cjackson_sr_api_key" {
+  display_name = "${var.resource_prefix}sr-api-key"
+  description  = "Schema Registry API key for Producer"
+
+  owner {
+    id          = confluent_service_account.cjackson_sa.id
+    api_version = confluent_service_account.cjackson_sa.api_version
+    kind        = confluent_service_account.cjackson_sa.kind
+  }
+
+  managed_resource {
+    id          = data.confluent_schema_registry_cluster.cjackson_sr.id
+    api_version = data.confluent_schema_registry_cluster.cjackson_sr.api_version
+    kind        = data.confluent_schema_registry_cluster.cjackson_sr.kind
+    environment {
+      id = confluent_environment.cjackson_env.id
+    }
+  }
+
+  depends_on = [
+    time_sleep.wait_for_rbac
   ]
 }
 
@@ -50,7 +73,6 @@ resource "confluent_api_key" "cjackson_deployer_kafka_key" {
   }
 
   depends_on = [
-    data.confluent_kafka_cluster.cjackson_cluster,
-    confluent_role_binding.cjackson_deployer_kafka_admin
+    time_sleep.wait_for_rbac
   ]
 }

@@ -31,3 +31,15 @@ output "kafka_api_key_secret" {
   value       = confluent_api_key.cjackson_kafka_api_key.secret
   sensitive   = true
 }
+
+output "schema_registry_api_key_id" {
+  description = "Schema Registry API key ID (for Producer SR client)"
+  value       = confluent_api_key.cjackson_sr_api_key.id
+  sensitive   = true
+}
+
+output "schema_registry_api_key_secret" {
+  description = "Schema Registry API key secret (for Producer SR client)"
+  value       = confluent_api_key.cjackson_sr_api_key.secret
+  sensitive   = true
+}
