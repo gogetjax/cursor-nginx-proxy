@@ -71,9 +71,9 @@ For local runs, set `TF_VAR_owner_email` and optionally `TF_VAR_environment` (e.
 
 Credentials can be provided via variables or environment variables.
 
-1. **Confluent Cloud:** Use GitHub Secrets **CONFLUENT_CLOUD_API_KEY** and **CONFLUENT_CLOUD_API_SECRET** in CI, or locally:
-   - `export CONFLUENT_CLOUD_API_KEY="..."` and `CONFLUENT_CLOUD_API_SECRET="..."`, or  
-   - Terraform variables `confluent_cloud_api_key` and `confluent_cloud_api_secret`.
+1. **Confluent Cloud:** Required for the provider and for Kafka ACL creation (Basic cluster needs ALTER). Use GitHub Secrets in CI, or locally pass as Terraform variables so the Confluent module receives them:
+   - `export TF_VAR_confluent_cloud_api_key="$CONFLUENT_CLOUD_API_KEY"` and `export TF_VAR_confluent_cloud_api_secret="$CONFLUENT_CLOUD_API_SECRET"` (if you already have the env vars set), or  
+   - `-var="confluent_cloud_api_key=..."` and `-var="confluent_cloud_api_secret=..."`, or a non-committed `.tfvars` file.
 
 2. **Azure:** Set subscription and tenant, e.g.:
    - `export ARM_SUBSCRIPTION_ID="..."` and `ARM_TENANT_ID="..."`, or  
@@ -93,7 +93,7 @@ Schema Registry uses the **ESSENTIALS** package for Stream Governance. The Confl
 2. **Enable Stream Governance** with the **ESSENTIALS** package (Stream Governance → Enable, or Set up Schema Registry). One Schema Registry cluster per environment will be created.
 3. Re-run `terraform apply` so the Terraform data source can find the Schema Registry cluster and populate outputs (e.g. `schema_registry_url`) and role bindings.
 
-Basic Kafka clusters use API-key–based access only; RBAC resource roles for Kafka require Standard (or higher) if you upgrade later.
+Basic Kafka clusters use ACLs (managed by Terraform); creating ACLs requires the Confluent Cloud API key (ALTER permission), so you must pass `confluent_cloud_api_key` and `confluent_cloud_api_secret` as Terraform variables (e.g. via `TF_VAR_*`). RBAC resource roles for Kafka require Standard (or higher) if you upgrade later.
 
 **Deploy:**
 
