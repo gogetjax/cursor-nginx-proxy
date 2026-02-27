@@ -238,6 +238,15 @@ az aks get-credentials --resource-group <nginx-rg> --name <aks-name>
 3. Run the Producer: `python producer/producer.py`.
 4. Consume messages with Confluent CLI or Confluent Cloud UI to confirm records arrive on the topic.
 
+## Troubleshooting
+
+- **Azure: "The refresh token has expired or is invalid"** — The Azure CLI token can expire due to sign-in frequency or conditional access. Re-authenticate:
+  ```bash
+  az logout
+  az login --tenant "<your-tenant-id>" --scope "https://graph.microsoft.com/.default"
+  ```
+  Use the tenant ID that matches your Azure login (e.g. from the error message). Then run `terraform plan` again.
+
 ## Optional CI
 
 - **.github/workflows/terraform-plan.yml** — Runs `terraform plan` on PRs. Requires: GitHub Secrets **CONFLUENT_CLOUD_API_KEY**, **CONFLUENT_CLOUD_API_SECRET**, and Azure credentials; a GitHub Environment named **terraform** with Environment variable **OWNER_EMAIL** (and optionally **ENVIRONMENT**) for Azure default tags.
