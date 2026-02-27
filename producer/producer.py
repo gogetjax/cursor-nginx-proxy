@@ -6,10 +6,10 @@ Uses Confluent Schema Registry from env. All configuration from environment vari
 import os
 import sys
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 from confluent_kafka import Producer
-from confluent_kafka.serialization import SerializationContext, StringSerializer
+from confluent_kafka.serialization import MessageField, SerializationContext, StringSerializer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.json_schema import JSONSerializer
 
@@ -88,13 +88,13 @@ def main():
     for i in range(5):
         value = {
             "id": f"sample-{i}",
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "message": f"Sample message #{i} via NGINX proxy",
         }
         producer.produce(
             topic=cfg["topic"],
-            value=json_serializer(value, SerializationContext(cfg["topic"])),
-            key=StringSerializer("utf-8")(f"key-{i}", None),
+            value=json_serializer(value, SerializationContext(cfg["topic"], MessageField.VALUE)),
+            key=StringSerializer("utf-8")(f"key-{i}", SerializationContext(cfg["topic"], MessageField.KEY)),
             callback=delivery_cb,
         )
 
