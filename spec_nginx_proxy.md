@@ -40,7 +40,7 @@ Built inside of its own Azure VNet.
 Uses the ESSENTIALS package for Governance along with Schema Registry
 All components including the Environment, service accounts, API Keys, Topics, and clusters are prefixed with "cjackson-".
 This workload runs in a new Environment.
-A service account should be used that manages and have access to appropriate Confluent Cloud resources with proper RBAC access such as DeveloperRead,DeveloperWrite if needed for Schema Registry, Kafka Cluster and topics. Basic Kafka clusters use API-key–based access only; RBAC resource roles for Kafka require Standard (or higher) if you upgrade later.
+A service account should be used with RBAC (DeveloperRead, DeveloperWrite) for Schema Registry and for the Kafka cluster and topics. The Kafka cluster is Standard tier so resource-scoped RBAC is used for Kafka; the same service account has an API key for cluster access (produce/consume) and role bindings for topic and Schema Registry access.
 
 Schema Registry (ESSENTIALS)
 ----------------------------

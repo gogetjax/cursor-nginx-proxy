@@ -1,4 +1,4 @@
-# cjackson-: Kafka topics (cjackson- prefix); created after ACLs so SA has CREATE/DESCRIBE
+# cjackson-: Kafka topics (cjackson- prefix); SA has DeveloperRead/DeveloperWrite via RBAC
 
 resource "confluent_kafka_topic" "cjackson_sample_topic" {
   kafka_cluster {
@@ -13,9 +13,4 @@ resource "confluent_kafka_topic" "cjackson_sample_topic" {
   }
 
   partitions_count = 3
-
-  depends_on = [
-    confluent_kafka_acl.cjackson_sa_topic_create,
-    confluent_kafka_acl.cjackson_sa_topic_describe
-  ]
 }

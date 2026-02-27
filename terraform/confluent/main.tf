@@ -8,14 +8,15 @@ resource "confluent_environment" "cjackson_env" {
   }
 }
 
-# Kafka cluster on Confluent Cloud (Azure, ESSENTIALS)
+# Kafka cluster on Confluent Cloud (Azure, Standard; supports RBAC resource roles).
+# If migrating from Basic, Terraform will replace the cluster (cannot change type in-place); back up data if needed.
 resource "confluent_kafka_cluster" "cjackson_cluster" {
   display_name = "${var.resource_prefix}kafka-cluster"
   availability = "SINGLE_ZONE"
   cloud        = var.cloud
   region       = var.region
 
-  basic {}
+  standard {}
 
   environment {
     id = confluent_environment.cjackson_env.id

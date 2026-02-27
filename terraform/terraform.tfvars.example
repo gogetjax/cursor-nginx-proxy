@@ -1,0 +1,20 @@
+# Copy to terraform.tfvars and set real values. Do not commit terraform.tfvars.
+# Required for plan/apply:
+azure_subscription_id = "your-azure-subscription-id"
+azure_tenant_id       = "your-azure-tenant-id"
+owner_email           = "your_email@example.com"
+github_owner          = "your-github-org-or-username"
+
+# Optional (defaults shown):
+# environment        = "dev"
+# resource_prefix    = "cjackson-"
+# azure_location     = "eastus"
+# confluent_region   = "eastus2"
+# github_repo        = "cursor-nginx-proxy"
+
+# Confluent Cloud (set for provider; or use env CONFLUENT_CLOUD_API_KEY / CONFLUENT_CLOUD_API_SECRET):
+# confluent_cloud_api_key    = ""
+# confluent_cloud_api_secret = ""
+
+# GitHub (optional; for pushing secrets):
+# github_token = ""
