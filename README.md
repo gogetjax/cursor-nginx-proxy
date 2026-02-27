@@ -6,7 +6,7 @@ End-to-end Terraform and Python for a **Python Kafka Producer** that sends sampl
 
 ## Architecture
 
-- **Producer VNet** (Azure) → TLS over public internet → **NGINX VNet** (AKS, NGINX listening on **8082**) → TLS passthrough over public internet → **Confluent Cloud** (Kafka **9092**, Schema Registry).
+- **Producer VNet** (Azure) → TLS over public internet → **NGINX VNet** (AKS, NGINX on **8082** for Kafka, **8443** for Schema Registry) → Confluent Cloud (Kafka **9092**, Schema Registry). Both Kafka and Schema Registry traffic go through NGINX.
 - All Confluent and Terraform resources use the prefix `cjackson-` (configurable).
 
 **Mermaid (raw):** [docs/architecture.mmd](docs/architecture.mmd)
@@ -26,7 +26,8 @@ flowchart LR
   end
   Producer -->|"TLS (public internet)"| NGINX
   NGINX -->|"TLS passthrough (public internet)"| Kafka
-  Producer -.->|"REST / env"| SR
+  Producer -->|"HTTPS :8443"| NGINX
+  NGINX -->|"HTTPS reverse proxy"| SR
 ```
 
 **Excalidraw:** [docs/architecture.excalidraw](docs/architecture.excalidraw) — open in [Excalidraw](https://excalidraw.com) to view or edit.
@@ -71,7 +72,7 @@ For local runs, set `TF_VAR_owner_email` and optionally `TF_VAR_environment` (e.
 
 Credentials can be provided via variables or environment variables.
 
-1. **Confluent Cloud:** Use GitHub Secrets **CONFLUENT_CLOUD_API_KEY** and **CONFLUENT_CLOUD_API_SECRET** in CI, or locally set the same env vars or Terraform variables `confluent_cloud_api_key` and `confluent_cloud_api_secret`. Topic creation also requires an **Admin** Kafka API key (see [Admin Kafka API key for topic creation](#admin-kafka-api-key-for-topic-creation)).
+1. **Confluent Cloud:** Use GitHub Secrets **CONFLUENT_CLOUD_API_KEY** and **CONFLUENT_CLOUD_API_SECRET** in CI, or locally set the same env vars or Terraform variables `confluent_cloud_api_key` and `confluent_cloud_api_secret`. Topic creation is fully automated (see [Topic creation (fully automated)](#topic-creation-fully-automated)).
 
 2. **Azure:** Set subscription and tenant, e.g.:
    - `export ARM_SUBSCRIPTION_ID="..."` and `ARM_TENANT_ID="..."`, or  
@@ -93,18 +94,13 @@ Schema Registry uses the **ESSENTIALS** package for Stream Governance. The Confl
 
 The Kafka cluster is Standard tier; Kafka access uses RBAC (DeveloperRead, DeveloperWrite) on the cluster. Schema Registry uses the same service account with RBAC on the Schema Registry cluster.
 
-### Admin Kafka API key for topic creation
+### Schema Registry via NGINX (port 8443)
 
-Terraform creates the Kafka topic using an **Admin** Kafka API key. Developer keys (created by Terraform for your apps) can only produce/consume on existing topics; they cannot create or alter topics. You must provide a Kafka API key that has Admin rights (e.g. Environment Admin or Cloud Cluster Admin).
+Schema Registry traffic is routed through the NGINX proxy so that both Kafka and Schema Registry go through NGINX. NGINX listens on **8443** (HTTPS) and reverse-proxies to Confluent Schema Registry. The TLS certificate for port 8443 is **Terraform-generated** (self-signed) so every tear-down/rebuild handles certs automatically. The Producer disables SSL certificate verification for the Schema Registry client when connecting to this endpoint (`enable.ssl.certificate.verification`: false). Use the `schema_registry_url` Terraform output (which points to `https://<nginx-lb>:8443` when the LB is ready) for the Producer and CI.
 
-Create the key in Confluent Cloud (e.g. from your personal Admin user or an Admin service account), then provide it to Terraform via one of:
+### Topic creation (fully automated)
 
-- **Option A – `terraform.tfvars`** (do not commit):  
-  `admin_kafka_api_key = "..."` and `admin_kafka_api_secret = "..."`
-- **Option B – Environment variables:**  
-  `export TF_VAR_admin_kafka_api_key="..."` and `export TF_VAR_admin_kafka_api_secret="..."`
-
-The **Developer** key (used by the Producer, NGINX, and GitHub Secrets) is still created by Terraform; the Admin key is used only by Terraform to create the topic and is not stored as a Terraform-managed API key.
+Terraform creates a **deployer** service account with **CloudClusterAdmin** on the Kafka cluster and a Kafka API key for that SA. The topic is created using this deployer key, so **no manual Admin Kafka API key** is required. The only Confluent credential you must provide is the **Cloud API key** (CONFLUENT_CLOUD_API_KEY / CONFLUENT_CLOUD_API_SECRET) for the Terraform provider; it must have permissions to create service accounts and role bindings (org or environment admin). The **Developer** key (used by the Producer and GitHub Secrets) is still created by Terraform for application use.
 
 **Deploy:**
 
@@ -127,8 +123,6 @@ terraform plan \
   -var="environment=dev" \
   -var="confluent_cloud_api_key=..." \
   -var="confluent_cloud_api_secret=..." \
-  -var="admin_kafka_api_key=..." \
-  -var="admin_kafka_api_secret=..." \
   -var="github_owner=YOUR_ORG" \
   -var="github_token=..."
 ```

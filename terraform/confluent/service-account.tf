@@ -5,6 +5,18 @@ resource "confluent_service_account" "cjackson_sa" {
   description  = "Service account for Kafka and Schema Registry access (DeveloperRead, DeveloperWrite)"
 }
 
+# Deployer SA: used by Terraform to create topics (Cloud Cluster Admin); no manual Admin Kafka key required
+resource "confluent_service_account" "cjackson_deployer_sa" {
+  display_name = "${var.resource_prefix}deployer-sa"
+  description  = "Service account for Terraform topic creation (CloudClusterAdmin on Kafka cluster)"
+}
+
+resource "confluent_role_binding" "cjackson_deployer_kafka_admin" {
+  principal   = "User:${confluent_service_account.cjackson_deployer_sa.id}"
+  role_name   = "CloudClusterAdmin"
+  crn_pattern = "${data.confluent_kafka_cluster.cjackson_cluster.rbac_crn}/kafka=${data.confluent_kafka_cluster.cjackson_cluster.id}"
+}
+
 # Kafka cluster: DeveloperRead, DeveloperWrite (Standard supports resource roles)
 resource "confluent_role_binding" "cjackson_kafka_cluster_developer" {
   principal   = "User:${confluent_service_account.cjackson_sa.id}"

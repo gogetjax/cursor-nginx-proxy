@@ -16,8 +16,8 @@ output "kafka_bootstrap_endpoint" {
 }
 
 output "schema_registry_url" {
-  description = "Confluent Schema Registry URL (HTTPS)"
-  value       = module.confluent.schema_registry_url
+  description = "Schema Registry URL via NGINX (HTTPS, port 8443); use for Producer and CI. Pending until LB is ready."
+  value       = local.schema_registry_url_via_nginx != "" ? local.schema_registry_url_via_nginx : "pending (re-apply after LB is ready)"
 }
 
 output "topic_name" {
