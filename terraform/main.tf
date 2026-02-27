@@ -2,8 +2,11 @@
 
 # Confluent provider: use variables or env CONFLUENT_CLOUD_API_KEY, CONFLUENT_CLOUD_API_SECRET
 provider "confluent" {
-  cloud_api_key    = var.confluent_cloud_api_key != "" ? var.confluent_cloud_api_key : null
-  cloud_api_secret = var.confluent_cloud_api_secret != "" ? var.confluent_cloud_api_secret : null
+  cloud_api_key        = var.confluent_cloud_api_key != "" ? var.confluent_cloud_api_key : null
+  cloud_api_secret     = var.confluent_cloud_api_secret != "" ? var.confluent_cloud_api_secret : null
+  kafka_api_key        = null
+  kafka_api_secret     = null
+  kafka_rest_endpoint  = null
 }
 
 # Confluent Cloud: Environment, Kafka cluster, Schema Registry, SA, API key, topic
