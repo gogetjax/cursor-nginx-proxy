@@ -21,5 +21,9 @@ resource "confluent_api_key" "cjackson_kafka_api_key" {
     }
   }
 
-  depends_on = [data.confluent_kafka_cluster.cjackson_cluster]
+  depends_on = [
+    data.confluent_kafka_cluster.cjackson_cluster,
+    confluent_role_binding.cjackson_kafka_cluster_developer,
+    confluent_role_binding.cjackson_kafka_cluster_developer_write
+  ]
 }
