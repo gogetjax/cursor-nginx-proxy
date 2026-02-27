@@ -13,4 +13,9 @@ resource "confluent_kafka_topic" "cjackson_sample_topic" {
   }
 
   partitions_count = 3
+
+  depends_on = [
+    confluent_role_binding.cjackson_kafka_cluster_developer,
+    confluent_role_binding.cjackson_kafka_cluster_developer_write
+  ]
 }
