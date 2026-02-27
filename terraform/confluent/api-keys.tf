@@ -15,6 +15,10 @@ resource "confluent_api_key" "cjackson_kafka_api_key" {
     id          = data.confluent_kafka_cluster.cjackson_cluster.id
     api_version = data.confluent_kafka_cluster.cjackson_cluster.api_version
     kind        = data.confluent_kafka_cluster.cjackson_cluster.kind
+
+    environment {
+      id = confluent_environment.cjackson_env.id
+    }
   }
 
   depends_on = [data.confluent_kafka_cluster.cjackson_cluster]
