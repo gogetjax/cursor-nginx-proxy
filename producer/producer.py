@@ -27,9 +27,20 @@ def load_env():
     api_key = os.environ.get("KAFKA_API_KEY")
     api_secret = os.environ.get("KAFKA_API_SECRET")
     topic = os.environ.get("TOPIC")
+    sr_ca_cert = os.environ.get("SCHEMA_REGISTRY_CA_CERT")
 
     if not all([bootstrap, sr_url, api_key, api_secret, topic]):
         print("Set BOOTSTRAP_SERVERS, SCHEMA_REGISTRY_URL, KAFKA_API_KEY, KAFKA_API_SECRET, TOPIC", file=sys.stderr)
+        sys.exit(1)
+
+    # When using Schema Registry via NGINX (port 8443), self-signed cert requires CA file
+    if sr_url and ":8443" in sr_url and not sr_ca_cert:
+        print(
+            "SCHEMA_REGISTRY_CA_CERT is required when using Schema Registry via NGINX (port 8443). "
+            "Export the cert from the nginx-sr-tls secret and set SCHEMA_REGISTRY_CA_CERT to its path. "
+            "See README for /etc/hosts and curl test steps.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     ssl_enabled = os.environ.get("SSL_ENABLED", "true").lower() in ("true", "1", "yes")
@@ -40,6 +51,7 @@ def load_env():
         "api_secret": api_secret,
         "topic": topic,
         "ssl_enabled": ssl_enabled,
+        "schema_registry_ca_cert": sr_ca_cert,
     }
 
 
@@ -58,8 +70,9 @@ def main():
     schema_registry_conf = {
         "url": cfg["schema_registry_url"],
         "basic.auth.user.info": f"{cfg['api_key']}:{cfg['api_secret']}",
-        "enable.ssl.certificate.verification": False,
     }
+    if cfg.get("schema_registry_ca_cert"):
+        schema_registry_conf["ssl.ca.location"] = cfg["schema_registry_ca_cert"]
 
     sr_client = SchemaRegistryClient(schema_registry_conf)
 
