@@ -30,6 +30,8 @@ def load_env():
     sr_ca_cert = os.environ.get("SCHEMA_REGISTRY_CA_CERT")
     sr_api_key = os.environ.get("SCHEMA_REGISTRY_API_KEY")
     sr_api_secret = os.environ.get("SCHEMA_REGISTRY_API_SECRET")
+    kafka_ssl_ca_location = os.environ.get("KAFKA_SSL_CA_LOCATION")
+    kafka_ssl_verify_hostname = os.environ.get("KAFKA_SSL_VERIFY_HOSTNAME", "true").lower() in ("true", "1", "yes")
 
     if not all([bootstrap, sr_url, api_key, api_secret, topic]):
         print("Set BOOTSTRAP_SERVERS, SCHEMA_REGISTRY_URL, KAFKA_API_KEY, KAFKA_API_SECRET, TOPIC", file=sys.stderr)
@@ -56,6 +58,8 @@ def load_env():
         "schema_registry_ca_cert": sr_ca_cert,
         "schema_registry_api_key": sr_api_key,
         "schema_registry_api_secret": sr_api_secret,
+        "kafka_ssl_ca_location": kafka_ssl_ca_location,
+        "kafka_ssl_verify_hostname": kafka_ssl_verify_hostname,
     }
 
 
@@ -70,6 +74,10 @@ def main():
         "sasl.username": cfg["api_key"],
         "sasl.password": cfg["api_secret"],
     }
+    if cfg.get("kafka_ssl_ca_location"):
+        producer_conf["ssl.ca.location"] = cfg["kafka_ssl_ca_location"]
+    if not cfg.get("kafka_ssl_verify_hostname", True):
+        producer_conf["ssl.endpoint.identification.algorithm"] = ""
 
     # Use dedicated SR API key when both set (avoids 401 when SR is via NGINX); else Kafka key
     sr_user = cfg["api_key"]
