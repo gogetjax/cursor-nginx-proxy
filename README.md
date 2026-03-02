@@ -18,7 +18,7 @@ flowchart LR
   end
   subgraph nginx_vnet [NGINX Proxy VNet]
     AKS[AKS]
-    NGINX[NGINX Pod :8082]
+    NGINX[NGINX Pod :8082 / :8443]
   end
   subgraph confluent [Confluent Cloud VNet]
     Kafka[Kafka :9092]

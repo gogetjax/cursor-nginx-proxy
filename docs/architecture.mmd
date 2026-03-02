@@ -4,7 +4,7 @@ flowchart LR
   end
   subgraph nginx_vnet [NGINX Proxy VNet]
     AKS[AKS]
-    NGINX[NGINX Pod :8082]
+    NGINX[NGINX Pod :8082 / :8443]
   end
   subgraph confluent [Confluent Cloud VNet]
     Kafka[Kafka :9092]
@@ -12,4 +12,5 @@ flowchart LR
   end
   Producer -->|"TLS (public internet)"| NGINX
   NGINX -->|"TLS passthrough (public internet)"| Kafka
-  Producer -.->|"REST / env"| SR
+  Producer -->|"HTTPS :8443"| NGINX
+  NGINX -->|"HTTPS reverse proxy"| SR
