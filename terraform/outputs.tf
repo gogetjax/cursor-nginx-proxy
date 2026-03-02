@@ -36,3 +36,15 @@ output "kafka_api_key_secret" {
   value       = module.confluent.kafka_api_key_secret
   sensitive   = true
 }
+
+output "schema_registry_api_key_id" {
+  description = "Schema Registry API key ID (for Producer SR client; use to avoid 401 when SR is via NGINX)"
+  value       = module.confluent.schema_registry_api_key_id
+  sensitive   = true
+}
+
+output "schema_registry_api_key_secret" {
+  description = "Schema Registry API key secret (for Producer SR client)"
+  value       = module.confluent.schema_registry_api_key_secret
+  sensitive   = true
+}

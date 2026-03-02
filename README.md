@@ -129,7 +129,7 @@ terraform plan \
 
 ## Running the Producer
 
-The Producer reads **BOOTSTRAP_SERVERS** (NGINX LB:8082), **SCHEMA_REGISTRY_URL**, **KAFKA_API_KEY**, **KAFKA_API_SECRET**, **TOPIC**, and (when using Schema Registry via NGINX on port 8443) **SCHEMA_REGISTRY_CA_CERT** from the environment or a local `.env` file.
+The Producer reads **BOOTSTRAP_SERVERS** (NGINX LB:8082), **SCHEMA_REGISTRY_URL**, **KAFKA_API_KEY**, **KAFKA_API_SECRET**, **TOPIC**, and (when using Schema Registry via NGINX on port 8443) **SCHEMA_REGISTRY_CA_CERT** from the environment or a local `.env` file. For Schema Registry via NGINX, use the **dedicated Schema Registry API key** (not the Kafka key) to avoid 401 Unauthorized; set **SCHEMA_REGISTRY_API_KEY** and **SCHEMA_REGISTRY_API_SECRET** from Terraform outputs below.
 
 **From Terraform outputs (after apply):**
 
@@ -141,12 +141,15 @@ export KAFKA_API_SECRET="$(terraform -chdir=terraform output -raw kafka_api_key_
 export TOPIC="$(terraform -chdir=terraform output -raw topic_name)"
 # Required when SCHEMA_REGISTRY_URL uses NGINX :8443 (see Self-signed cert below)
 export SCHEMA_REGISTRY_CA_CERT="$HOME/nginx-sr-cert.pem"
+# Dedicated Schema Registry API key (avoids 401 when SR is via NGINX)
+export SCHEMA_REGISTRY_API_KEY="$(terraform -chdir=terraform output -raw schema_registry_api_key_id)"
+export SCHEMA_REGISTRY_API_SECRET="$(terraform -chdir=terraform output -raw schema_registry_api_key_secret)"
 cd producer && pip install -r requirements.txt && python producer.py
 ```
 
-**Using a local `.env`:** Copy `producer/.env.example` to `producer/.env`, fill in values (including `SCHEMA_REGISTRY_CA_CERT` when using NGINX for Schema Registry), then run the producer from the `producer/` directory.
+**Using a local `.env`:** Copy `producer/.env.example` to `producer/.env`, fill in values (including `SCHEMA_REGISTRY_CA_CERT` and `SCHEMA_REGISTRY_API_KEY` / `SCHEMA_REGISTRY_API_SECRET` when using NGINX for Schema Registry), then run the producer from the `producer/` directory.
 
-**Required env vars:** `BOOTSTRAP_SERVERS`, `SCHEMA_REGISTRY_URL`, `KAFKA_API_KEY`, `KAFKA_API_SECRET`, `TOPIC`. When `SCHEMA_REGISTRY_URL` points to NGINX (port 8443), also set `SCHEMA_REGISTRY_CA_CERT`. See [docs/env-variables.md](docs/env-variables.md).
+**Required env vars:** `BOOTSTRAP_SERVERS`, `SCHEMA_REGISTRY_URL`, `KAFKA_API_KEY`, `KAFKA_API_SECRET`, `TOPIC`. When `SCHEMA_REGISTRY_URL` points to NGINX (port 8443), also set `SCHEMA_REGISTRY_CA_CERT` and the dedicated **SCHEMA_REGISTRY_API_KEY** / **SCHEMA_REGISTRY_API_SECRET** (from Terraform outputs) so SR returns 200 instead of 401. See [docs/env-variables.md](docs/env-variables.md).
 
 ### Self-signed cert and hostname
 
