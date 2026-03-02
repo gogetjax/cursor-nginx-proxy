@@ -192,6 +192,13 @@ curl --cacert ~/nginx-sr-cert.pem -v https://nginx-schema-registry:8443/
 
 If you use the LB IP in the URL, you will see: `certificate subject name 'nginx-schema-registry' does not match target host name '<ip>'`. Fix by using the hostname in the URL and the `/etc/hosts` entry above.
 
+### Kafka TLS through NGINX (port 8082)
+
+Kafka uses TLS passthrough: the broker cert is Confluent's, not NGINX's. If you see **broker certificate could not be verified** or **certificate verify failed** when connecting to `BOOTSTRAP_SERVERS` (e.g. an IP like `4.x.x.x:8082`):
+
+1. **CA trust:** Set **KAFKA_SSL_CA_LOCATION** to your OS CA bundle so the producer can verify Confluent's cert (e.g. `/etc/ssl/certs/ca-certificates.crt` on Ubuntu/WSL).
+2. **Hostname mismatch:** When using an IP for bootstrap through the proxy, the cert's hostname won't match. Set **KAFKA_SSL_VERIFY_HOSTNAME=false** to disable only hostname verification (CA verification stays on). See [docs/env-variables.md](docs/env-variables.md).
+
 ## GitHub Secrets (Producer and workflows)
 
 When Terraform runs with a GitHub token, it creates or updates these **repository secrets** (visible to repo admins):
