@@ -48,3 +48,4 @@ __pycache__/
 venv/
 .env
 .env.local
+PR_DESCRIPTION.md
