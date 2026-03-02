@@ -77,7 +77,8 @@ def main():
     if cfg.get("kafka_ssl_ca_location"):
         producer_conf["ssl.ca.location"] = cfg["kafka_ssl_ca_location"]
     if not cfg.get("kafka_ssl_verify_hostname", True):
-        producer_conf["ssl.endpoint.identification.algorithm"] = ""
+        # librdkafka requires "none"; empty string is rejected with _INVALID_ARG
+        producer_conf["ssl.endpoint.identification.algorithm"] = "none"
 
     # Use dedicated SR API key when both set (avoids 401 when SR is via NGINX); else Kafka key
     sr_user = cfg["api_key"]
