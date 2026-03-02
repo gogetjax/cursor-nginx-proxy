@@ -96,7 +96,7 @@ The Kafka cluster is Standard tier; Kafka access uses RBAC (DeveloperRead, Devel
 
 ### Schema Registry via NGINX (port 8443)
 
-Schema Registry traffic is routed through the NGINX proxy so that both Kafka and Schema Registry go through NGINX. NGINX listens on **8443** (HTTPS) and reverse-proxies to Confluent Schema Registry. The TLS certificate for port 8443 is **Terraform-generated** (self-signed) so every tear-down/rebuild handles certs automatically. The Producer disables SSL certificate verification for the Schema Registry client when connecting to this endpoint (`enable.ssl.certificate.verification`: false). Use the `schema_registry_url` Terraform output (which points to `https://<nginx-lb>:8443` when the LB is ready) for the Producer and CI.
+Schema Registry traffic is routed through the NGINX proxy so that both Kafka and Schema Registry go through NGINX. NGINX listens on **8443** (HTTPS) and reverse-proxies to Confluent Schema Registry. The TLS certificate for port 8443 is **Terraform-generated** (self-signed) so every tear-down/rebuild handles certs automatically. The Producer uses **SCHEMA_REGISTRY_CA_CERT** (path to the NGINX cert PEM) so the Schema Registry client trusts the endpoint via `ssl.ca.location`. When `SCHEMA_REGISTRY_URL` uses port 8443, `SCHEMA_REGISTRY_CA_CERT` is required. Use the `schema_registry_url` Terraform output (e.g. `https://<nginx-lb>:8443`) and export the cert from the `nginx-sr-tls` Kubernetes secret for local runs; see [Self-signed cert and hostname](#self-signed-cert-and-hostname) and [Network connectivity tests](#network-connectivity-tests).
 
 ### Topic creation (fully automated)
 
@@ -129,7 +129,7 @@ terraform plan \
 
 ## Running the Producer
 
-The Producer reads **BOOTSTRAP_SERVERS** (NGINX LB:8082), **SCHEMA_REGISTRY_URL**, **KAFKA_API_KEY**, **KAFKA_API_SECRET**, and **TOPIC** from the environment (or a local `.env` file). These can come from Terraform outputs or GitHub Secrets.
+The Producer reads **BOOTSTRAP_SERVERS** (NGINX LB:8082), **SCHEMA_REGISTRY_URL**, **KAFKA_API_KEY**, **KAFKA_API_SECRET**, **TOPIC**, and (when using Schema Registry via NGINX on port 8443) **SCHEMA_REGISTRY_CA_CERT** from the environment or a local `.env` file.
 
 **From Terraform outputs (after apply):**
 
@@ -139,18 +139,55 @@ export SCHEMA_REGISTRY_URL="$(terraform -chdir=terraform output -raw schema_regi
 export KAFKA_API_KEY="$(terraform -chdir=terraform output -raw kafka_api_key_id)"
 export KAFKA_API_SECRET="$(terraform -chdir=terraform output -raw kafka_api_key_secret)"
 export TOPIC="$(terraform -chdir=terraform output -raw topic_name)"
+# Required when SCHEMA_REGISTRY_URL uses NGINX :8443 (see Self-signed cert below)
+export SCHEMA_REGISTRY_CA_CERT="$HOME/nginx-sr-cert.pem"
 cd producer && pip install -r requirements.txt && python producer.py
 ```
 
-**Using a local `.env`:** Copy `producer/.env.example` to `producer/.env`, fill in values (from outputs or GitHub Secrets), then:
+**Using a local `.env`:** Copy `producer/.env.example` to `producer/.env`, fill in values (including `SCHEMA_REGISTRY_CA_CERT` when using NGINX for Schema Registry), then run the producer from the `producer/` directory.
+
+**Required env vars:** `BOOTSTRAP_SERVERS`, `SCHEMA_REGISTRY_URL`, `KAFKA_API_KEY`, `KAFKA_API_SECRET`, `TOPIC`. When `SCHEMA_REGISTRY_URL` points to NGINX (port 8443), also set `SCHEMA_REGISTRY_CA_CERT`. See [docs/env-variables.md](docs/env-variables.md).
+
+### Self-signed cert and hostname
+
+When Schema Registry is reached via NGINX (`https://<host>:8443`), the server uses a Terraform-generated self-signed cert. The producer needs the CA cert and a hostname that matches the cert (CN is `nginx-schema-registry`).
+
+1. **Export the cert** from the AKS secret (run after `kubectl` is configured for your cluster):
+
+   ```bash
+   kubectl get secret nginx-sr-tls -n cjackson-nginx -o jsonpath='{.data.cert\.pem}' | base64 -d > ~/nginx-sr-cert.pem
+   ```
+
+2. **Match hostname to cert:** If you connect by IP, TLS hostname verification will fail (cert subject is `nginx-schema-registry`). Add a hosts entry so the same hostname is used in the URL:
+
+   ```bash
+   echo "<EXTERNAL-IP> nginx-schema-registry" | sudo tee -a /etc/hosts
+   ```
+
+   Then set `SCHEMA_REGISTRY_URL="https://nginx-schema-registry:8443"` (and ensure `BOOTSTRAP_SERVERS` still uses the IP or the same hostname if desired).
+
+3. Set **SCHEMA_REGISTRY_CA_CERT** to the path of the exported PEM (e.g. `$HOME/nginx-sr-cert.pem`).
+
+### Network connectivity tests
+
+Use these to verify NGINX reachability without running the full producer.
+
+**Kafka path (NGINX port 8082):**
 
 ```bash
-cd producer
-pip install -r requirements.txt
-python producer.py
+# Replace <host> with NGINX LB EXTERNAL-IP or hostname
+nc -vz <host> 8082
+openssl s_client -connect <host>:8082 -servername <host>
 ```
 
-**Required env vars:** `BOOTSTRAP_SERVERS`, `SCHEMA_REGISTRY_URL`, `KAFKA_API_KEY`, `KAFKA_API_SECRET`, `TOPIC`. See [docs/env-variables.md](docs/env-variables.md).
+**Schema Registry path (NGINX port 8443):**  
+Without the CA cert, `curl` will report a hostname mismatch (cert CN is `nginx-schema-registry`). Use the exported cert and a hostname that matches the cert (e.g. `nginx-schema-registry` in `/etc/hosts`):
+
+```bash
+curl --cacert ~/nginx-sr-cert.pem -v https://nginx-schema-registry:8443/
+```
+
+If you use the LB IP in the URL, you will see: `certificate subject name 'nginx-schema-registry' does not match target host name '<ip>'`. Fix by using the hostname in the URL and the `/etc/hosts` entry above.
 
 ## GitHub Secrets (Producer and workflows)
 

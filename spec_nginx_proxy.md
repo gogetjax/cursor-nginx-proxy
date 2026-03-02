@@ -46,6 +46,18 @@ Schema Registry (ESSENTIALS)
 ----------------------------
 The environment uses the ESSENTIALS package for Stream Governance and Schema Registry. Stream Governance (ESSENTIALS) must be enabled for the environment in Confluent Cloud (Stream Governance → Enable in the console) so that the Schema Registry cluster exists. Terraform does not create the Schema Registry cluster; it only references the existing cluster via a data source and configures role bindings and outputs (e.g. schema_registry_url).
 
+Schema Registry via NGINX (port 8443)
+--------------------------------------
+All Schema Registry traffic is routed through the NGINX proxy. NGINX listens on 8443 (HTTPS) and reverse-proxies to Confluent Schema Registry. The TLS certificate for 8443 is Terraform-generated (self-signed) so certs are handled automatically on tear-down/rebuild. The producer trusts this endpoint by setting **SCHEMA_REGISTRY_CA_CERT** to the path of the exported cert PEM; the Schema Registry client uses `ssl.ca.location` (no disabling of verification). When **SCHEMA_REGISTRY_URL** uses port 8443, **SCHEMA_REGISTRY_CA_CERT** is required. Export the cert from the Kubernetes secret `nginx-sr-tls` (namespace `cjackson-nginx`); see README for the exact `kubectl` command. **Hostname verification:** The cert CN is `nginx-schema-registry`. If clients connect by LB IP, TLS hostname verification fails. For local development, add an `/etc/hosts` entry mapping the NGINX LB IP to `nginx-schema-registry` and use `https://nginx-schema-registry:8443` as **SCHEMA_REGISTRY_URL**.
+
+Producer environment for Schema Registry over NGINX
+---------------------------------------------------
+Required when the producer uses Schema Registry via NGINX: **SCHEMA_REGISTRY_URL** (e.g. `https://nginx-schema-registry:8443`), **SCHEMA_REGISTRY_CA_CERT** (path to the exported NGINX cert PEM). Optional but recommended: use the same hostname in `/etc/hosts` so the URL host matches the cert CN. See README and docs/env-variables.md.
+
+Connectivity validation
+-----------------------
+Use these commands to verify NGINX reachability before running the full producer. **Kafka path (port 8082):** `nc -vz <host> 8082` and `openssl s_client -connect <host>:8082 -servername <host>`. **Schema Registry path (port 8443):** Export the NGINX cert, then `curl --cacert <path-to-cert.pem> -v https://nginx-schema-registry:8443/`. If the hostname does not match the cert CN, use the `/etc/hosts` workaround above.
+
 
 Terraform
 ==========
@@ -85,6 +97,7 @@ We should also maintain and update a Mermaid architecture diagram viewable in ra
 Put this very spec plan into GitHub as well.
 The README should show examples of terraform commands needed to deploy this workload as well as update the workload.
 The README should document the required GitHub setup: Confluent and Azure secrets, and the GitHub Environment with OWNER_EMAIL (and optionally ENVIRONMENT) for Azure tags.
+The README should document the self-signed certificate workflow for Schema Registry via NGINX: exporting the cert from the nginx-sr-tls secret, optional /etc/hosts mapping for hostname match (cert CN is nginx-schema-registry), and setting SCHEMA_REGISTRY_URL and SCHEMA_REGISTRY_CA_CERT. It should include a network connectivity test runbook: Kafka path (NGINX port 8082) with nc and openssl s_client; Schema Registry path (NGINX port 8443) with curl --cacert; and a note on the expected hostname mismatch when using the LB IP and how /etc/hosts resolves it.
 The README should also show confluent CLI commands to monitor the workload to test, view, and query the environment.
 The README should also include example commands of how to monitor or query the NGINX proxy state and data flow.
 The README should also include example commands to query the state of the Kubernetes environment.

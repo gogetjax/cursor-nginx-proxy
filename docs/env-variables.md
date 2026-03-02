@@ -9,7 +9,8 @@ The Producer reads configuration from the environment (or a `.env` file that is 
 | Variable | Description | Source |
 |----------|-------------|--------|
 | `BOOTSTRAP_SERVERS` | Kafka bootstrap address. Use the **NGINX Load Balancer** host and port (e.g. `nginx-lb.example.eastus.cloudapp.azure.com:8082`). | Terraform output → GitHub Secret or `.env` |
-| `SCHEMA_REGISTRY_URL` | Confluent Schema Registry base URL (HTTPS). | Terraform output → GitHub Secret or `.env` |
+| `SCHEMA_REGISTRY_URL` | Confluent Schema Registry base URL (HTTPS). When using NGINX, use e.g. `https://nginx-schema-registry:8443` (see README for `/etc/hosts`). | Terraform output → GitHub Secret or `.env` |
+| `SCHEMA_REGISTRY_CA_CERT` | Path to the NGINX self-signed CA cert PEM. **Required** when `SCHEMA_REGISTRY_URL` points to NGINX on port 8443; the producer sets `ssl.ca.location` so the Schema Registry client trusts the endpoint. Export from Kubernetes secret `nginx-sr-tls` (see README for export and `/etc/hosts`). | Local file path (e.g. `~/nginx-sr-cert.pem`); not in Terraform output. |
 | `KAFKA_API_KEY` | Confluent Cloud Kafka API key (for SASL/PLAIN). | Terraform/Confluent → GitHub Secret |
 | `KAFKA_API_SECRET` | Confluent Cloud Kafka API secret. | Terraform/Confluent → GitHub Secret |
 | `TOPIC` | Target Kafka topic name (e.g. `cjackson-sample-topic`). | Terraform output → GitHub Secret or `.env` |
@@ -20,7 +21,7 @@ The Producer reads configuration from the environment (or a `.env` file that is 
 - **No secrets in repo**: Do not put `.env` (with real secrets) under version control. Use `producer/.env.example` as a template only; add `producer/.env` to `.gitignore`.
 - **GitHub Secrets**: In CI or when running from a machine with access to GitHub, populate the above from GitHub Actions secrets (or GitHub Environments). Admins with proper access can view/manage these.
 - **TLS**: All connections (Producer → NGINX, NGINX → Confluent) use TLS over the public internet. The Producer connects to the NGINX proxy on port 8082 with TLS; the producer library uses the same credentials as for Confluent (API key/secret) for authentication after the TLS handshake.
-- **Schema Registry**: Typically accessed over HTTPS using the same or a separate API key; the Confluent Kafka client can use Schema Registry for serialization. Ensure `SCHEMA_REGISTRY_URL` is set when using Avro/JSON Schema.
+- **Schema Registry**: Typically accessed over HTTPS using the same or a separate API key; the Confluent Kafka client can use Schema Registry for serialization. When Schema Registry is reached via NGINX (port 8443), set `SCHEMA_REGISTRY_CA_CERT` to the path of the exported NGINX cert so the client trusts the self-signed server certificate (see README for export and `/etc/hosts` hostname guidance).
 
 ## Terraform / Azure default tags
 
