@@ -28,6 +28,8 @@ def load_env():
     api_secret = os.environ.get("KAFKA_API_SECRET")
     topic = os.environ.get("TOPIC")
     sr_ca_cert = os.environ.get("SCHEMA_REGISTRY_CA_CERT")
+    sr_api_key = os.environ.get("SCHEMA_REGISTRY_API_KEY")
+    sr_api_secret = os.environ.get("SCHEMA_REGISTRY_API_SECRET")
 
     if not all([bootstrap, sr_url, api_key, api_secret, topic]):
         print("Set BOOTSTRAP_SERVERS, SCHEMA_REGISTRY_URL, KAFKA_API_KEY, KAFKA_API_SECRET, TOPIC", file=sys.stderr)
@@ -52,6 +54,8 @@ def load_env():
         "topic": topic,
         "ssl_enabled": ssl_enabled,
         "schema_registry_ca_cert": sr_ca_cert,
+        "schema_registry_api_key": sr_api_key,
+        "schema_registry_api_secret": sr_api_secret,
     }
 
 
@@ -67,9 +71,15 @@ def main():
         "sasl.password": cfg["api_secret"],
     }
 
+    # Use dedicated SR API key when both set (avoids 401 when SR is via NGINX); else Kafka key
+    sr_user = cfg["api_key"]
+    sr_pass = cfg["api_secret"]
+    if cfg.get("schema_registry_api_key") and cfg.get("schema_registry_api_secret"):
+        sr_user = cfg["schema_registry_api_key"]
+        sr_pass = cfg["schema_registry_api_secret"]
     schema_registry_conf = {
         "url": cfg["schema_registry_url"],
-        "basic.auth.user.info": f"{cfg['api_key']}:{cfg['api_secret']}",
+        "basic.auth.user.info": f"{sr_user}:{sr_pass}",
     }
     if cfg.get("schema_registry_ca_cert"):
         schema_registry_conf["ssl.ca.location"] = cfg["schema_registry_ca_cert"]

@@ -11,6 +11,8 @@ The Producer reads configuration from the environment (or a `.env` file that is 
 | `BOOTSTRAP_SERVERS` | Kafka bootstrap address. Use the **NGINX Load Balancer** host and port (e.g. `nginx-lb.example.eastus.cloudapp.azure.com:8082`). | Terraform output → GitHub Secret or `.env` |
 | `SCHEMA_REGISTRY_URL` | Confluent Schema Registry base URL (HTTPS). When using NGINX, use e.g. `https://nginx-schema-registry:8443` (see README for `/etc/hosts`). | Terraform output → GitHub Secret or `.env` |
 | `SCHEMA_REGISTRY_CA_CERT` | Path to the NGINX self-signed CA cert PEM. **Required** when `SCHEMA_REGISTRY_URL` points to NGINX on port 8443; the producer sets `ssl.ca.location` so the Schema Registry client trusts the endpoint. Export from Kubernetes secret `nginx-sr-tls` (see README for export and `/etc/hosts`). | Local file path (e.g. `~/nginx-sr-cert.pem`); not in Terraform output. |
+| `SCHEMA_REGISTRY_API_KEY` | Schema Registry API key ID. When set together with `SCHEMA_REGISTRY_API_SECRET`, the producer uses them for SR basic auth (avoids 401 when SR is via NGINX; Confluent Cloud requires a dedicated SR key). | Terraform output `schema_registry_api_key_id` or GitHub Secret |
+| `SCHEMA_REGISTRY_API_SECRET` | Schema Registry API key secret. Use with `SCHEMA_REGISTRY_API_KEY` for SR via NGINX. | Terraform output `schema_registry_api_key_secret` or GitHub Secret |
 | `KAFKA_API_KEY` | Confluent Cloud Kafka API key (for SASL/PLAIN). | Terraform/Confluent → GitHub Secret |
 | `KAFKA_API_SECRET` | Confluent Cloud Kafka API secret. | Terraform/Confluent → GitHub Secret |
 | `TOPIC` | Target Kafka topic name (e.g. `cjackson-sample-topic`). | Terraform output → GitHub Secret or `.env` |

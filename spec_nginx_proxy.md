@@ -65,6 +65,10 @@ All Terraform resources and data should be prefixed with "cjackson-".
 Terraform code should output all relevant url endpoints links such as load balancer links if available, kafka cluster, nginx urls, schema registry urls, etc. 
 All API Keys and secrets when generated should be output to GitHub Secrets and access by the Proucer and other components using GitHub Secrets, which can be visible by GitHub Admins with proper access.
 
+Version control (tfplan ignored, commit / push / PR)
+---------------------------------------------------
+Terraform plan output files (e.g. `tfplan`, `terraform/tfplan`) must be listed in `.gitignore` and must not be committed; they can contain sensitive data and are environment-specific. The repo `.gitignore` should include `tfplan`, `*.tfplan`, and `terraform/tfplan`. If a plan file was previously committed, run `git rm --cached terraform/tfplan` (or the path used) to stop tracking it without deleting the file locally. The README or repo docs should describe the standard workflow for contributing: stage changes (`git add -A`, which respects `.gitignore`), commit, push the branch to origin, then open a PR (e.g. `gh pr create --base main --head <branch>` or the GitHub compare URL). This keeps tfplan out of history and gives a consistent commit/push/PR process.
+
 Azure resource tagging
 ----------------------
 Every Azure resource created by Terraform must carry default tags. Use the Azure provider's default_tags block so that all resources automatically receive:
@@ -97,7 +101,7 @@ We should also maintain and update a Mermaid architecture diagram viewable in ra
 Put this very spec plan into GitHub as well.
 The README should show examples of terraform commands needed to deploy this workload as well as update the workload.
 The README should document the required GitHub setup: Confluent and Azure secrets, and the GitHub Environment with OWNER_EMAIL (and optionally ENVIRONMENT) for Azure tags.
-The README should document the self-signed certificate workflow for Schema Registry via NGINX: exporting the cert from the nginx-sr-tls secret, optional /etc/hosts mapping for hostname match (cert CN is nginx-schema-registry), and setting SCHEMA_REGISTRY_URL and SCHEMA_REGISTRY_CA_CERT. It should include a network connectivity test runbook: Kafka path (NGINX port 8082) with nc and openssl s_client; Schema Registry path (NGINX port 8443) with curl --cacert; and a note on the expected hostname mismatch when using the LB IP and how /etc/hosts resolves it.
+The README should document the self-signed certificate workflow for Schema Registry via NGINX: exporting the cert from the nginx-sr-tls secret, optional /etc/hosts mapping for hostname match (cert CN is nginx-schema-registry), and setting SCHEMA_REGISTRY_URL and SCHEMA_REGISTRY_CA_CERT. It should include a network connectivity test runbook: Kafka path (NGINX port 8082) with nc and openssl s_client; Schema Registry path (NGINX port 8443) with curl --cacert; and a note on the expected hostname mismatch when using the LB IP and how /etc/hosts resolves it. The README should also document version-control practice: Terraform plan files (tfplan) are ignored and must not be committed; and the standard workflow for commit, push, and opening a PR (see Version control above).
 The README should also show confluent CLI commands to monitor the workload to test, view, and query the environment.
 The README should also include example commands of how to monitor or query the NGINX proxy state and data flow.
 The README should also include example commands to query the state of the Kubernetes environment.
